@@ -1,5 +1,6 @@
 import socket
 import ssl
+import threading
 
 #===============================================
 #   Class Server
@@ -34,6 +35,7 @@ class Server:
             print(f"Une erreur c'est produite lors de la création de la socket : {e}")
             return
         
+        # ===> Add parameter of tls connexion
         context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         context.load_cert_chain("./server.crt", "./server.key")
         context.set_ciphers("DHE-RSA-AES256-GCM-SHA384")
@@ -46,20 +48,26 @@ class Server:
             return
 
         # ===> Listenig on the socket
-        tcp_socket.listen()
+        tcp_socket.listen(5)
         print("En écoute...")
 
+        # ===> Create secure connexion
         server_ssl = context.wrap_socket(tcp_socket, server_side=True)
 
-        # ===> Try to accept the connecion of client    
-        try:
-            client, ip = server_ssl.accept()
-            print(f"Client connecter avec {ip}")
-        except socket.error as e:
-            print(f"Une erreur c'est produite lors de la connexion avec le client : {e}")
-            server_ssl.close()
-            return
-
+        while True:
+            # ===> Try to accept the connecion of client    
+            try:
+                client, ip = server_ssl.accept()
+                print(f"Client connecter avec {ip}")
+            except socket.error as e:
+                print(f"Une erreur c'est produite lors de la connexion avec le client : {e}")
+                server_ssl.close()
+                return
+            # ===> Create a thread for clients
+            client_thread = threading.Thread(target=Server.handle_client, args=(client, tcp_socket, server_ssl))
+            client_thread.start()  # Démarrage du thread pour gérer le client
+            
+    def handle_client(client, tcp_socket, server_ssl):
         # ===> Try to receve date of client
         try:
             data = client.recv(Server.Taille_Bit)
@@ -74,15 +82,14 @@ class Server:
 
         # ===> Try to send the data to the client
         try:
-            client.send("Message bien reçu !".encode())
+            client.send(data)
         except socket.error as e:
             print(f"Une erreur c'est produit lors de l'envoi sur le client : {e}")
             client.close()
             return
+        
         # ===> Close the connecion    
         client.close()
-        server_ssl.close()
-        tcp_socket.close()
 
 server1 = Server("192.168.1.34", 2000)
 
