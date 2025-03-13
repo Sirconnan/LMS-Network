@@ -36,6 +36,7 @@ class Server:
         
         context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         context.load_cert_chain("./server.crt", "./server.key")
+        context.set_ciphers("DHE-RSA-AES256-GCM-SHA384")
 
         # ===> Try to create IP/TCP socket
         try:
