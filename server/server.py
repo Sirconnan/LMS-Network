@@ -4,7 +4,7 @@ import threading
 
 #===============================================
 #   Class Server
-#       -Atttributs:
+#       -Attributs:
 #           - ip_server = choice the ip addres to define listenig
 #           - port_ecoute = the port to the listening
 #       
@@ -63,9 +63,13 @@ class Server:
                 print(f"Une erreur c'est produite lors de la connexion avec le client : {e}")
                 server_ssl.close()
                 return
+            except KeyboardInterrupt:
+                print("Stop server")
+                exit()
+
             # ===> Create a thread for clients
             client_thread = threading.Thread(target=Server.handle_client, args=(client, tcp_socket, server_ssl))
-            client_thread.start()  # Démarrage du thread pour gérer le client
+            client_thread.start()
             
     def handle_client(client, tcp_socket, server_ssl):
         # ===> Try to receve date of client
@@ -90,7 +94,3 @@ class Server:
         
         # ===> Close the connecion    
         client.close()
-
-server1 = Server("192.168.1.34", 2000)
-
-server1.Run_server()
