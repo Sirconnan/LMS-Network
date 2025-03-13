@@ -35,6 +35,8 @@ class Client:
         
         context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
         context.load_verify_locations("./ca.crt")
+        # Force Diffie-Hellman
+        context.set_ciphers("DHE-RSA-AES256-GCM-SHA384")  
         
         Address = (self.ip_server, self.port_ecoute)
         
