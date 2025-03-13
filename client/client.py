@@ -132,7 +132,12 @@ class Client:
                 print(f"Port {ports} : \tFiltrer")
                 
                 
-client1 = Client("192.168.1.34")
-# port = [80,80,2222]
-# client1.run_scan(port)
-client1.Run_client(2000, "neuil")
+
+# ---------------------------------------------
+# ---------------------------------------------
+# ---------------------------------------------
+            
+# client1 = Client("192.168.1.34")
+# # port = [80,80,2222]
+# # client1.run_scan(port)
+# client1.Run_client(2000, "neuil")
