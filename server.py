@@ -1,36 +1,51 @@
 import socket
 
+#===============================================
+#   Class Server
+#       -Atttributs:
+#           - ip_server = choice the ip addres to define listenig
+#           - port_ecoute = the port to the listening
+#       
+#       -Methods:
+#           -Run_client(self)
+#               => Allow to run listening the request of client
+#===============================================
+
 class Server:
+    #  attribut
     Taille_Bit = 1024
     Type_Ipv4 = socket.AF_INET
     Type_TCP = socket.SOCK_STREAM
 
     def __init__(self, ip_server = "127.0.0.1", port_ecoute = 2000):
+        # Class attribut
         self.ip_server = ip_server
         self.port_ecoute = port_ecoute
 
     def Run_server(self):
         tcp_socket = None
         client = None
-        
+
+        # ===> Define IP/TCP socket
         try:
             tcp_socket = socket.socket(Server.Type_Ipv4, Server.Type_TCP)
         except socket.error as e:
             print(f"Une erreur c'est produite lors de la création de la socket : {e}")
             return
 
+        # ===> Try to create IP/TCP socket
         Adress = (self.ip_server, self.port_ecoute)
-
         try:
             tcp_socket.bind(Adress)
         except socket.error as e:
             print(f"Une erreur c'est produite lors de l'écoute : {e}")
             return
 
-
+        # ===> Listenig on the socket
         tcp_socket.listen()
         print("En écoute...")
 
+        # ===> Try to accept the connecion of client    
         try:
             client, ip = tcp_socket.accept()
             print(f"Client connecter avec {ip}")
@@ -39,6 +54,7 @@ class Server:
             tcp_socket.close()
             return
 
+        # ===> Try to receve date of client
         try:
             data = client.recv(Server.Taille_Bit)
             if data:
@@ -50,13 +66,14 @@ class Server:
             client.close()
             return
 
+        # ===> Try to send the data to the client
         try:
             client.send("Message bien reçu !".encode())
         except socket.error as e:
             print(f"Une erreur c'est produit lors de l'envoi sur le client : {e}")
             client.close()
             return
-            
+        # ===> Close the connecion    
         client.close()
         tcp_socket.close()
 
