@@ -1,18 +1,30 @@
 import socket
 
+#===============================================
+#   Class Client
+#       -Atttributs:
+#           - ip_server = choice the ip addres to test the server
+#           - port_ecoute = the port or list port that you would try
+#       
+#       -Methods:
+#           -Run_client(self)
+#               => Allow to run the request to the server
+#===============================================
 class Client:
     Taille_Bit = 1024
     Type_Ipv4 = socket.AF_INET
     Type_TCP = socket.SOCK_STREAM
     
     def __init__(self, ip_server, port_ecoute, message):
+        # Class attribut
         self.ip_server = ip_server
-        self.port_ecoute = port_ecoute
+        self.port_ecoute = port_ecoute 
         self.message = message
         
-    
+    # Instance method
     def Run_client(self):
         
+        # ===> Create IP/TCP socket
         try:
             tcp_socket = socket.socket(Client.Type_Ipv4, Client.Type_TCP)
             
@@ -22,13 +34,15 @@ class Client:
             
         Address = (self.ip_server, self.port_ecoute)
         
+        # ===> try to connect to the server via the "Address"
         try:
             tcp_socket.connect(Address)
             
         except socket.error as e:
             print(f"Une erreur est survenue =====> {e}")
             exit()
-          
+        
+        # ===> Send the client message
         try:
           tcp_socket.send(self.message.encode("utf8"))
           
@@ -38,14 +52,14 @@ class Client:
     
     
         print("Message envoyer a serveur")
+        data = tcp_socket.recv(Client.Taille_Bit)
         
         if not data:
             print("Une erreur lors de la reception de la réponse du serveur")
             exit()
-            
-        else:
-            data = tcp_socket.recv(Client.Taille_Bit)
         
+            
+        # ===> close the socket
         tcp_socket.close()
         
         print(f"Réponse serveur {data.decode()}")
