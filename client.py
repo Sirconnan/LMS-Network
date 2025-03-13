@@ -34,6 +34,8 @@ class Client:
           exit()
         
         context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        context.load_verify_locations("./ca.crt")
+        
         Address = (self.ip_server, self.port_ecoute)
         
         # ===> try to connect to the server via the "Address"
