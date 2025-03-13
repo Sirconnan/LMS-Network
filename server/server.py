@@ -33,11 +33,13 @@ class Server:
         except socket.error as e:
             print(f"Une erreur c'est produite lors de la création de la socket : {e}")
             return
+        
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        context.load_cert_chain("./server.crt", "./server.key")
 
         # ===> Try to create IP/TCP socket
-        Adress = (self.ip_server, self.port_ecoute)
         try:
-            tcp_socket.bind(Adress)
+            tcp_socket.bind((self.ip_server, self.port_ecoute))
         except socket.error as e:
             print(f"Une erreur c'est produite lors de l'écoute : {e}")
             return
@@ -46,13 +48,15 @@ class Server:
         tcp_socket.listen()
         print("En écoute...")
 
+        server_ssl = context.wrap_socket(tcp_socket, server_side=True)
+
         # ===> Try to accept the connecion of client    
         try:
-            client, ip = tcp_socket.accept()
+            client, ip = server_ssl.accept()
             print(f"Client connecter avec {ip}")
         except socket.error as e:
             print(f"Une erreur c'est produite lors de la connexion avec le client : {e}")
-            tcp_socket.close()
+            server_ssl.close()
             return
 
         # ===> Try to receve date of client
@@ -76,6 +80,7 @@ class Server:
             return
         # ===> Close the connecion    
         client.close()
+        server_ssl.close()
         tcp_socket.close()
 
 server1 = Server("192.168.1.34", 2000)
