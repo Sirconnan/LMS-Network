@@ -1,4 +1,5 @@
 import socket
+import ssl
 
 #===============================================
 #   Class Client
@@ -31,12 +32,16 @@ class Client:
         except socket.error as e:
           print(f"Une erreur est survenue =====> {e}")
           exit()
-            
+        
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        context.load_verify_locations("./ca.crt")
+        
         Address = (self.ip_server, self.port_ecoute)
         
         # ===> try to connect to the server via the "Address"
         try:
-            tcp_socket.connect(Address)
+            client_ssl = context.wrap_socket(tcp_socket, server_hostname=self.ip_server)
+            client_ssl.connect(Address)
             
         except socket.error as e:
             print(f"Une erreur est survenue =====> {e}")
@@ -44,7 +49,7 @@ class Client:
         
         # ===> Send the client message
         try:
-          tcp_socket.send(self.message.encode("utf8"))
+          client_ssl.send(self.message.encode("utf8"))
           
         except socket.error as e:
             print(f"Une erreur est survenue =====> {e}")
@@ -52,7 +57,7 @@ class Client:
     
     
         print("Message envoyer a serveur")
-        data = tcp_socket.recv(Client.Taille_Bit)
+        data = client_ssl.recv(Client.Taille_Bit)
         
         if not data:
             print("Une erreur lors de la reception de la réponse du serveur")
@@ -60,7 +65,7 @@ class Client:
         
             
         # ===> close the socket
-        tcp_socket.close()
+        client_ssl.close()
         
         print(f"Réponse serveur {data.decode()}")
        
