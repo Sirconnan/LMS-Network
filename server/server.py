@@ -34,6 +34,7 @@ class Server:
             print(f"Une erreur c'est produite lors de la création de la socket : {e}")
             return
         
+        # ===> Add parameter of tls connexion
         context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         context.load_cert_chain("./server.crt", "./server.key")
         context.set_ciphers("DHE-RSA-AES256-GCM-SHA384")
@@ -49,6 +50,7 @@ class Server:
         tcp_socket.listen()
         print("En écoute...")
 
+        # ===> Create secure connexion
         server_ssl = context.wrap_socket(tcp_socket, server_side=True)
 
         # ===> Try to accept the connecion of client    
