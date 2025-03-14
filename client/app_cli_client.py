@@ -27,13 +27,15 @@ def cli_enable(choix_client):
             message = input("Quelle est vôtre message a transmettre :\n=> ")
                 
             client_cli_1.Run_client(port, message)
+            
+            print("\n-----------------------------------------\n")
 
         elif choix_client == 2:
             choix_client_2 = 0
             
             while choix_client_2 != 4 :
                 print("+-------------------+")
-                print("|  === Menu CLI === |")
+                print("|  <<< Menu DNS >>> |")
                 print("+------------------+")
                 print("| 1. Resolution Dns |")
                 print("| 2. Reverse Dns    |")
@@ -49,13 +51,18 @@ def cli_enable(choix_client):
                 if choix_client_2 == 1:
                     domaine = input("Veuillez choisir un domain:\n=>")
                     client_cli_1.resolution_dns(domaine)
+                    print("\n-----------------------------------------\n")
                 
                 elif choix_client_2 == 2:
                     client_cli_1.reverse_resolution_dns()
+                    
+                    print("\n-----------------------------------------\n")
                 
                 elif choix_client_2 == 3:
                     domaine = input("Veuillez choisir un domain:\n=>")
                     client_cli_1.get_dns_records(domaine)
+                    
+                    print("\n-----------------------------------------\n")
         
         
         elif choix_client == 3:
@@ -71,10 +78,11 @@ def cli_enable(choix_client):
                 print(f"\n\nScanning {client_cli_1.ip_server}...")
 
                 client_cli_1.run_scan(target_int_ports)
-
+                print("\n-----------------------------------------\n")
             elif len(target_int_ports) == 1:
                 print(f"\n\nScanning {client_cli_1.ip_server}...")
                 client_cli_1.scan_port(target_int_ports)
+                print("\n-----------------------------------------\n")
 
             else:
                 print("Vous n'avez pas rentrez de ports!")

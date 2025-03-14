@@ -87,8 +87,8 @@ class Client:
     def reverse_resolution_dns(self):
         
         try:
-            nom_domaine = socket.gethostbyaddr(ip)[0]
-            print(f"{ip}:\n\t{nom_domaine}")
+            nom_domaine = socket.gethostbyaddr(self.ip_server)[0]
+            print(f"{self.ip_server}:\n\t{nom_domaine}")
         except socket.error as e:
             print(f"echec de la résolution dns: {e}")
 
