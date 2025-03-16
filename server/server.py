@@ -1,6 +1,7 @@
 import socket
 import ssl
 import threading
+import random
 
 #===============================================
 #   Class Server
@@ -14,13 +15,13 @@ import threading
 #===============================================
 
 class Server:
-    #  attribut
+    # ===>  Attribut
     Taille_Bit = 1024
     Type_Ipv4 = socket.AF_INET
     Type_TCP = socket.SOCK_STREAM
 
     def __init__(self, ip_server = "127.0.0.1", port_ecoute = 2000):
-        # Class attribut
+        # ===> Class attribut
         self.ip_server = ip_server
         self.port_ecoute = port_ecoute
 
@@ -37,7 +38,7 @@ class Server:
         
         # ===> Add parameter of tls connexion
         context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-        context.load_cert_chain("./server.crt", "./server.key")
+        context.load_cert_chain("/home/marietm/res403/server/server.crt", "/home/marietm/res403/server/server.key")
         context.set_ciphers("DHE-RSA-AES256-GCM-SHA384")
 
         # ===> Try to create IP/TCP socket
@@ -92,5 +93,6 @@ class Server:
             client.close()
             return
         
-        # ===> Close the connecion    
+        # ===> Close the connecion
+        print("\nEn écoute...")   
         client.close()
