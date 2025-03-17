@@ -1,5 +1,6 @@
 import random as rand
 import hashlib
+import os
 
 import Crypto.Util.number as cun
 from Crypto.Util.Padding import pad, unpad
@@ -20,7 +21,7 @@ def diffie_hellman_shared_key(recv_public, private, prime):
     return pow(recv_public, private, prime)
 
 def diffie_hellman_encrypt(message: bytes, shared_key):
-    iv = b'sJh\x93\x1b\xda\x9c\xbf\x886\x86tl\xa2\x9c\xfe'
+    iv = os.urandom(16)
     key = hashlib.sha256(cun.long_to_bytes(shared_key)).digest()[:16]
     cipher = AES.new(key, AES.MODE_CBC, iv)
     cipher_text = cipher.encrypt(pad(message, AES.block_size))

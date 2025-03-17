@@ -3,6 +3,8 @@ import ssl
 import threading
 import random
 
+from diffie_helman_server import * 
+
 #===============================================
 #   Class Server
 #       -Attributs:
@@ -39,7 +41,7 @@ class Server:
         # ===> Add parameter of tls connexion
         context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         context.load_cert_chain("/home/marietm/res403/server/server.crt", "/home/marietm/res403/server/server.key")
-        context.set_ciphers("DHE-RSA-AES256-GCM-SHA384")
+        #context.set_ciphers("DHE-RSA-AES256-GCM-SHA384")
 
         # ===> Try to create IP/TCP socket
         try:
@@ -69,17 +71,51 @@ class Server:
                 exit()
 
             # ===> Create a thread for clients
-            client_thread = threading.Thread(target=Server.handle_client, args=(client, tcp_socket, server_ssl))
+            client_thread = threading.Thread(target=Server.handle_client, args=(client))
             client_thread.start()
-            
-    def handle_client(client, tcp_socket, server_ssl):
-        # ===> Try to receve date of client
+
+    def handle_client(client):
+
+        # ===> Create setting for Diffie Hellman
+        prime_number = diffie_hellman_prime() # Prime number
+        private_key = diffie_hellman_private_key(prime) # Pivate key
+        public_key = diffie_hellman_public_key(private_key, prime) # Public key
+
+        # ===> Send to client the prime number and the public key
+        try:
+             client.send((prime_number, public_key).encode())
+        except socket.error as e:
+            print(f"Une erreur c'est produit lors de l'envoi sur le client : {e}")
+            client.close()
+            return
+
+        # ===> Receve public key of the client
         try:
             data = client.recv(Server.Taille_Bit)
             if data:
-                print(f"Message client: {data.decode()}")
+                recv_public_key = data.decode()
             else:
                 print("Connexion perdu avec le client")
+                client.close()
+                return
+        except socket.error as e:
+            print(f" Une erreur c'est produite lors de la réception du message du client : {e}")
+            client.close()
+            return
+        
+        # ===> Create the share key 
+        shared_key = diffie_hellman_shared_key(recv_public_key, private_key, prime_number)
+
+        # ===> Try to receve date of client
+        try:
+            message = client.recv(Server.Taille_Bit)
+            if message:
+                message = diffie_hellman_decrypt(message, shared_key)
+                print(f"Message client: {message}")
+            else:
+                print("Connexion perdu avec le client")
+                client.close()
+                return
         except socket.error as e:
             print(f" Une erreur c'est produite lors de la réception du message du client : {e}")
             client.close()
@@ -87,7 +123,8 @@ class Server:
 
         # ===> Try to send the data to the client
         try:
-            client.send(data)
+            message = diffie_hellman_encrypt(message.encode, shared_key)
+            client.send(message)
         except socket.error as e:
             print(f"Une erreur c'est produit lors de l'envoi sur le client : {e}")
             client.close()
