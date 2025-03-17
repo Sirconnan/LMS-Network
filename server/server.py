@@ -1,7 +1,4 @@
-import socket
-import ssl
-import threading
-import random
+import socket, ssl, threading, random, json
 
 from diffie_helman_server import * 
 
@@ -22,119 +19,141 @@ class Server:
     Type_Ipv4 = socket.AF_INET
     Type_TCP = socket.SOCK_STREAM
 
-    def __init__(self, ip_server = "127.0.0.1", port_ecoute = 2000):
+
+    def __init__(self, ip_server : str = "127.0.0.1", port_ecoute : int = 2000):
         # ===> Class attribut
         self.ip_server = ip_server
         self.port_ecoute = port_ecoute
 
+
     def Run_server(self):
         tcp_socket = None
+        server_ssl = None
         client = None
+
+        # ===> Add parameter of tls connexion
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        context.load_cert_chain("/home/marietm/res403/server/server.crt", "/home/marietm/res403/server/server.key")
+        context.set_ciphers("TLS_AES_128_CCM_8_SHA256, TLS_AES_128_CCM_SHA256, TLS_AES_128_GCM_SHA256, TLS_AES_256_GCM_SHA384 , TLS_CHACHA20_POLY1305_SHA256")
 
         # ===> Define IP/TCP socket
         try:
             tcp_socket = socket.socket(Server.Type_Ipv4, Server.Type_TCP)
         except socket.error as e:
-            print(f"Une erreur c'est produite lors de la création de la socket : {e}")
-            return
-        
-        # ===> Add parameter of tls connexion
-        context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-        context.load_cert_chain("/home/marietm/res403/server/server.crt", "/home/marietm/res403/server/server.key")
-        #context.set_ciphers("DHE-RSA-AES256-GCM-SHA384")
+            Server.error_sockets(e, tcp_socket, server_ssl)
 
         # ===> Try to create IP/TCP socket
         try:
             tcp_socket.bind((self.ip_server, self.port_ecoute))
         except socket.error as e:
-            print(f"Une erreur c'est produite lors de l'écoute : {e}")
-            return
+            Server.error_sockets(e, tcp_socket, server_ssl)
+        
+        # ===> Try to create secure connexion
+        try:
+            server_ssl = context.wrap_socket(tcp_socket, server_side=True)
+        except ssl.SSLError as e:
+            Server.error_sockets(e, tcp_socket, server_ssl)
 
         # ===> Listenig on the socket
-        tcp_socket.listen(5)
-        print("En écoute...")
-
-        # ===> Create secure connexion
-        server_ssl = context.wrap_socket(tcp_socket, server_side=True)
+        server_ssl.listen(5)
+        print("\nListen ...")
 
         while True:
             # ===> Try to accept the connecion of client    
             try:
                 client, ip = server_ssl.accept()
-                print(f"Client connecter avec {ip}")
+                print(f"Client connect to ip : {ip}")
             except socket.error as e:
-                print(f"Une erreur c'est produite lors de la connexion avec le client : {e}")
-                server_ssl.close()
-                return
+                Server.error_sockets(e, tcp_socket, server_ssl)
             except KeyboardInterrupt:
+                tcp_socket.close()
+                server_ssl.close()
                 print("Stop server")
                 exit()
 
             # ===> Create a thread for clients
-            client_thread = threading.Thread(target=Server.handle_client, args=(client, tcp_socket, server_ssl))
+            client_thread = threading.Thread(target=Server.handle_client, args=(client,))
             client_thread.start()
 
-    def handle_client(client, tcp_socket, server_ssl):
+
+    @staticmethod
+    def handle_client(client):
 
         # ===> Create setting for Diffie Hellman
-        prime_number = diffie_hellman_prime() # Prime number
-        private_key = diffie_hellman_private_key(prime_number) # Pivate key
-        public_key = diffie_hellman_public_key(private_key, prime_number) # Public key
-        print(f"Nb_premier: {prime_number}\nClef priver: {private_key}\nClef publique: {public_key}")
+        prime_number = diffie_hellman_prime() # => Prime number
+        private_key = diffie_hellman_private_key(prime_number) # => Pivate key
+        public_key = diffie_hellman_public_key(private_key, prime_number) # => Public key
+        print(f"Prime number: {prime_number}\nPivate Key: {private_key}\nPublic Key: {public_key}")
 
-        # ===> Send to client the prime number and the public key
+        # ===> Generate JSON whith the prime number and the public key
+
+        data_diffie_helman = json.dumps([prime_number,public_key])
+        data_diffie_helman_byte = data_diffie_helman.encode("utf-8")
+        
+        # ===> Try send to client
         try:
-             client.send(str(prime_number).encode())
-             client.send(str(public_key).encode())
-             print("Clef publique et nombre premier envoyer")
+             client.send(data_diffie_helman_byte)
+             print("\nPublic key and prime number send")
         except socket.error as e:
-            print(f"Une erreur c'est produit lors de l'envoi sur le client : {e}")
-            client.close()
-            return
+            Server.error_client(e, client)
 
-        # ===> Receve public key of the client
+        # ===> Try receve public key of the client
         try:
             data = client.recv(Server.Taille_Bit)
-            if data:
-                recv_public_key = int(data.decode())
-                print("Clef public client reçu")
-            else:
-                print("Connexion perdu avec le client")
-                client.close()
-                return
         except socket.error as e:
-            print(f" Une erreur c'est produite lors de la réception du message du client : {e}")
-            client.close()
-            return
+            Server.error_client(e, client)
+
+        if not data:
+            Server.error_client("No data received", client)
+        
+        try:
+            recv_public_key = int(data.decode("utf-8"))
+        except ValueError as e:
+            Server.error_client(e, client)
+            
+        print("Client public key receved")
         
         # ===> Create the share key 
         shared_key = diffie_hellman_shared_key(recv_public_key, private_key, prime_number)
-        print(f"Clef partager: {shared_key}")
+        print(f"Shared Key: {shared_key}")
 
         # ===> Try to receve date of client
         try:
-            message = client.recv(Server.Taille_Bit)
-            if message:
-                message = diffie_hellman_decrypt(message.decode(), shared_key)
-                print(f"Message client: {message.decode()}")
-            else:
-                print("Connexion perdu avec le client")
-                client.close()
-                return
+            message_encrypt = client.recv(Server.Taille_Bit)
         except socket.error as e:
-            print(f" Une erreur c'est produite lors de la réception du message du client : {e}")
-            client.close()
-            return
+            Server.error_client(e, client)
+
+        if not message_encrypt:
+            Server.error_client("No data received", client)
+        
+        message_decrypt = diffie_hellman_decrypt(message_encrypt, shared_key)
+        print(f"Message client: {message_decrypt}")
+
+        message_encrypt = diffie_hellman_encrypt(message_decrypt, shared_key)
 
         # ===> Try to send the data to the client
         try:
-            message = diffie_hellman_encrypt(message, shared_key)
-            client.send(message.encode())
+            client.send(message_encrypt)
         except socket.error as e:
-            print(f"Une erreur c'est produit lors de l'envoi sur le client : {e}")
-            client.close()
-            return
+            Server.error_client(e, client)
         
         # ===> Close the connecion
-        print("\nEn écoute...")   
+        print("\nListen...")   
         client.close()
+        return 0
+
+
+    @staticmethod
+    def error_sockets(error, sock, ssl):
+        print(f"An error has occurred ==> {error}")
+        sock.close()
+        if ssl is not None:
+            ssl.close()
+        return 1
+    
+    @staticmethod
+    def error_client(error, client):
+        print(f"An error has occurred ==> {error}")
+        print("\nListen...")
+        client.close()
+        return 1
