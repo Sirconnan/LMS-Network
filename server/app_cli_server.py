@@ -1,3 +1,4 @@
+#!/bin/python
 from server import Server
 
 boucle = True
