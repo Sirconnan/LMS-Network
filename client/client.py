@@ -35,8 +35,8 @@ class Client:
             tcp_socket = socket.socket(Client.Type_Ipv4, Client.Type_TCP)
             
         except socket.error as e:
-          print(f"Une erreur est survenue =====> {e}")
-          exit()
+          self.error_sockets(e, tcp_socket)
+
         
         context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
         context.load_verify_locations("/home/lenzzair/Projet/Python_client_server_poo/client/ca.crt")
@@ -53,8 +53,9 @@ class Client:
             
             
         except socket.error as e:
-            print(f"Une erreur est survenue =====> {e}")
-            exit()
+            self.error_sockets(e, client_ssl)
+
+
         
          # ==============================
         # Setting deffie_helman
@@ -74,7 +75,7 @@ class Client:
        
         private_key = diffie_hellman_private_key(prime_number)
         public_key = diffie_hellman_public_key(private_key, prime_number)
-        print(f"Prime number: {prime_number}\nPublic key :{public_key}\nPrivate key: {private_key}")
+        print(f"Public key :{public_key}\nPrivate key: {private_key}")
         
         try:
             client_ssl.send(str(public_key).encode())
@@ -82,19 +83,19 @@ class Client:
             
             
         except socket.error as e:
-            print(f"Une erreur est survenue =====> {e}")
-            exit()
+            self.error_sockets(e, client_ssl)
+
             
         shared_key = diffie_hellman_shared_key(rcv_public_key, private_key, prime_number )
-        print("shared key :", shared_key)
+        print("shared key as been create")
         # ===> Send the client message
         try:
             diffie_message = diffie_hellman_encrypt(message, shared_key)
             client_ssl.send(diffie_message)
           
         except socket.error as e:
-            print(f"Une erreur est survenue =====> {e}")
-            exit()
+            self.error_sockets(e, client_ssl)
+
     
     
         print("Message envoyer a serveur")
@@ -119,7 +120,7 @@ class Client:
             ip = socket.gethostbyname(domain)
             print(f"{domain}: \n\t{ip}")
         except socket.error as e :
-            print(f"echec de la résolution dns: {e}") 
+            self.error_sockets(e, tcp_socket)
     
     # ---------------------------------------------
     # ---------------------------------------------
@@ -129,7 +130,7 @@ class Client:
             nom_domaine = socket.gethostbyaddr(self.ip_server)[0]
             print(f"{self.ip_server}:\n\t{nom_domaine}")
         except socket.error as e:
-            print(f"echec de la résolution dns: {e}")
+            self.error_sockets(e)
 
     # ---------------------------------------------
     # ---------------------------------------------
@@ -173,6 +174,22 @@ class Client:
                 
 
 # ---------------------------------------------
+    @staticmethod
+    def error_sockets(error, sock=None):
+        print(f"Erreur détectée ==> {error}")
+        if sock:
+            try:
+                sock.close()
+                print("Socket fermée correctement.")
+            except Exception as close_error:
+                print(f"Erreur lors de la fermeture du socket ==> {close_error}")
+        exit(1)
+        
+    @staticmethod
+    def exit_program(msg="Déconnexion..."):
+        print(msg)
+        exit(0)
+
 # ---------------------------------------------
 # ---------------------------------------------
             
