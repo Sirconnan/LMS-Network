@@ -2,8 +2,9 @@ import socket
 import ssl
 import dns.resolver
 import random
+import json
 from scapy.all import *
-from diffie_helman_server import *
+from diffie_helman_client import *
 
 
 #===============================================
@@ -39,6 +40,7 @@ class Client:
         
         context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
         context.load_verify_locations("/home/lenzzair/Projet/Python_client_server_poo/client/ca.crt")
+        #context.set_ciphers("TLS_AES_128_CCM_8_SHA256,TLS_AES_128_CCM_SHA256,TLS_AES_128_GCM_SHA256,TLS_AES_256_GCM_SHA384, TLS_CHACHA20_POLY1305_SHA256")
         # Force Diffie-Hellman
     
         
@@ -48,6 +50,7 @@ class Client:
         try:
             client_ssl = context.wrap_socket(tcp_socket, server_hostname=self.ip_server)
             client_ssl.connect(Address)
+            
             
         except socket.error as e:
             print(f"Une erreur est survenue =====> {e}")
@@ -59,17 +62,19 @@ class Client:
 
         try:
             
-            prime_number = int(client_ssl.recv(Client.Taille_Bit).decode())
-            rcv_public_key = int(client_ssl.recv(Client.Taille_Bit).decode())
+            json_liste = client_ssl.recv(Client.Taille_Bit).decode()
+            print(json_liste)
+            prime_number = json.loads(json_liste)[0]
+            rcv_public_key = json.loads(json_liste)[1]
+            
         except ValueError as e:
             print(f"Une erreur est survenue =====> {e}")
             exit()
             
-        print("prime number :", prime_number)
+       
         private_key = diffie_hellman_private_key(prime_number)
-        print("private key :", private_key)
         public_key = diffie_hellman_public_key(private_key, prime_number)
-        print("public key :", public_key)
+        print(f"Prime number: {prime_number}\nPublic key :{public_key}\nPrivate key: {private_key}")
         
         try:
             client_ssl.send(str(public_key).encode())
@@ -84,8 +89,8 @@ class Client:
         print("shared key :", shared_key)
         # ===> Send the client message
         try:
-            diffie_message = diffie_hellman_encrypt(message.encode(), shared_key)
-            client_ssl.send(diffie_message.encode())
+            diffie_message = diffie_hellman_encrypt(message, shared_key)
+            client_ssl.send(diffie_message)
           
         except socket.error as e:
             print(f"Une erreur est survenue =====> {e}")
@@ -94,7 +99,7 @@ class Client:
     
         print("Message envoyer a serveur")
         data = client_ssl.recv(Client.Taille_Bit)
-        message_decrypt = diffie_hellman_decrypt(data.decode(), shared_key)
+        message_decrypt = diffie_hellman_decrypt(data, shared_key)
         
         if not data:
             print("Une erreur lors de la reception de la réponse du serveur")
