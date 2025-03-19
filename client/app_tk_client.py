@@ -1,5 +1,6 @@
 import tkinter as tk
 import subprocess
+from client import Client
 from tkinter.messagebox import *
 
 class Lms_network:
@@ -12,8 +13,9 @@ class Lms_network:
         self.gui = tk.Tk()
         self.gui.config(bg='skyblue')
         self.gui.title("LMS Network")
-        self.gui.geometry("400x200")
+        self.gui.geometry("600x600")
     
+        
     def run_graphique(self):
         self.gui.mainloop()
         
@@ -48,21 +50,53 @@ class Lms_network:
         
         port_used = self.get_used_ports()
         ip_used = Lms_network.ip_client.stdout.strip()
-        user_ip = self.input_start_ip.get()
-        user_port = self.input_start_port.get()
+        self.user_ip = self.input_start_ip.get()
+        self.user_port = self.input_start_port.get()
     
-        if ip_used == user_ip:
-            showerror('Error', f"L' adresse ip {ip_used} est deja utiliser", parent=self.instance_client)
+        if ip_used == self.user_ip:
+            showerror('Error', f"L' adresse ip {self.ip_used} est deja utiliser", parent=self.instance_client)
 
-        elif user_port in port_used:
-            showerror('Error', f'Le port {user_port} est deja utiliser', parent=self.instance_client)
+        elif self.user_port in port_used:
+            showerror('Error', f'Le port {self.user_port} est deja utiliser', parent=self.instance_client)
         else:
          
-            if askyesno('Confirmation',f"La configuration du serveur est-elle correcte ?\n\nAdresse saisie : {user_ip}\nPort : {user_port}", parent = self.instance_client):
+            if askyesno('Confirmation',f"La configuration du serveur est-elle correcte ?\n\nAdresse saisie : {self.user_ip}\nPort : {self.user_port}", parent = self.instance_client):
+                
                 showinfo('Validation', "Client crée !", parent = self.instance_client)
+                self.client_script = Client(self.user_ip)
+                self.instance_client.destroy() 
+                self.show_main_menu() 
             else:
                 showwarning("Annulation", "Client annulé.", parent = self.instance_client)
 
+
+    def show_main_menu(self):
+        self.menu_frame = tk.Frame(self.gui, bg='skyblue')
+        self.menu_frame.pack(pady=20)
+
+        tk.Button(self.menu_frame, text="Requête Echo", command=self.requete_echo).pack(pady=10)
+        tk.Button(self.menu_frame, text="Menu DNS", command=self.menu_dns).pack(pady=10)
+        tk.Button(self.menu_frame, text="Scan de Ports", command=self.scan_ports).pack(pady=10)
+        tk.Button(self.menu_frame, text="Quitter", command=self.gui.quit).pack(pady=10)
+
+    def requete_echo(self):
+        message = "test"
+        try:
+            port = int(self.user_port)
+            self.client_script.Run_client(port, message)
+        except ValueError:
+            print("Problème de type sur le port")
+
+    def menu_dns(self):
+        print("DNS lancé")
+
+    def scan_ports(self):
+        print("Scan lancé")
+
+
+# ===============================================
+
+# ===============================================
 instance1 = Lms_network()
 tk.Button(instance1.gui, text="Crée un nouveaux client", command=instance1.start_new_client).pack(pady=20)
 instance1.run_graphique()
