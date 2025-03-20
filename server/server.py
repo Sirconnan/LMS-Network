@@ -24,7 +24,7 @@ class Server:
         # ===> Class attribut
         self.ip_server = ip_server
         self.port_ecoute = port_ecoute
-
+        self.thread_etat = True
 
     def Run_server(self):
         tcp_socket = None
@@ -56,24 +56,28 @@ class Server:
 
         # ===> Listenig on the socket
         server_ssl.listen(5)
+        server_ssl.settimeout(1)
         print("\nListen ...")
 
-        while True:
+        while self.thread_etat:
             # ===> Try to accept the connecion of client    
             try:
                 client, ip = server_ssl.accept()
                 print(f"Client connect to ip : {ip}")
+                
+                # ===> Create a thread for clients
+                client_thread = threading.Thread(target=Server.handle_client, args=(client,))
+                client_thread.start()
+            except socket.timeout:
+                continue
             except socket.error as e:
                 Server.error_sockets(e, tcp_socket, server_ssl)
             except KeyboardInterrupt:
-                tcp_socket.close()
-                server_ssl.close()
-                print("Stop server")
-                exit()
-
-            # ===> Create a thread for clients
-            client_thread = threading.Thread(target=Server.handle_client, args=(client,))
-            client_thread.start()
+                self.thread_etat = False
+        print("Stop server")
+        server_ssl.close()
+        tcp_socket.close()
+        return 0
 
 
     @staticmethod
@@ -146,9 +150,9 @@ class Server:
     @staticmethod
     def error_sockets(error, sock, ssl):
         print(f"An error has occurred ==> {error}")
-        sock.close()
         if ssl is not None:
             ssl.close()
+        sock.close()
         return 1
     
     @staticmethod
