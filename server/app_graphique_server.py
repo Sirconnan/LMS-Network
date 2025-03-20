@@ -20,10 +20,12 @@ class stdout_redirector: # ====> Create class for redirect the stdout flux
     def flush(self): # ====> For app use the method sys.stdout.flush
         pass
 
+
 class Interface:
 
     __IP = socket.gethostbyname(socket.gethostname())
     __NB_SERVER = 0
+    __NB_CERTIFICAT =0
 
     def __init__(self, width:int = 100, height:int = 100, text:str = "Server"):
         self.gui = Tk()
@@ -38,6 +40,14 @@ class Interface:
         except KeyboardInterrupt:
             self.gui.quit()
             exit()
+    
+    
+    def create_cert(self):
+        if Interface.__NB_CERTIFICAT >=1:
+            showinfo("Limit reached", "The max number of service for create is reached. (1 max)")
+            return
+        print("OK")
+
     
     def create_server(self):
         if Interface.__NB_SERVER >= 5:
@@ -59,10 +69,10 @@ class Interface:
         port_input = Spinbox(server_gui, from_=1024, to=65535)
         port_input.pack()
         
-        Button(server_gui, text="Start server", command=lambda: Interface.start_server(ip_input, port_input, server_gui)).pack()
+        Button(server_gui, text="Start server", command=lambda: Interface.__start_server(ip_input, port_input, server_gui)).pack()
     
     @staticmethod
-    def start_server(ip_input, port_input, server_gui):
+    def __start_server(ip_input, port_input, server_gui):
         ip = ip_input.get()
         port = port_input.get()
 
@@ -72,58 +82,50 @@ class Interface:
         octets = ip.split(".")
 
         if not (len(octets) == 4 and all(o.isdigit() and 0 <= int(o) <= 255 for o in octets)):
-            showerror("Error IP", "Invalid format the IP. Expected format : \"127.0.0.1\"")
+            showerror("Error IP", "Invalid format the IP. Expected format : \"127.0.0.1\".")
             return
         
         if not port.isdigit():
-            showerror("Error Port", "Invalid format the port. Expected format : \"52152\"")
+            showerror("Error Port", "Invalid format the port. Expected format : \"52152\".")
             return
         
         port = int(port)
 
         if not 1024 <= port <= 65535:
-            showerror("Error Port", "Invalid port. Expected range : [1024-65535]")
+            showerror("Error Port", "Invalid port. Expected range : [1024-65535].")
             return
         
         if port in list_open_port:
-            showerror("Error Port", "Port already used")
+            showerror("Error Port", "Port already used.")
             return
 
-        if askyesno("Checking information", f"Are you sure of connect information:\n- IP: {ip}\n- Port: {port}"):
+        if askyesno("Checking information", f"Are you sure of connect information:\n- IP: {ip}\n- Port: {port}."):
             for widget in server_gui.winfo_children():
                 widget.destroy()
             
-            Label(server_gui, text=f"Server started at {ip} on port {port}").pack()
-
-            frame_stdout_server = Frame(server_gui)
-            frame_stdout_server.pack(fill=BOTH, expand=True)
-
-            text_stdout_server = Text(frame_stdout_server, wrap="word", height=10, width=50)
-            text_stdout_server.pack(fill=BOTH, expand=True)
-
-            stdout_redirector_server = stdout_redirector(text_stdout_server)
-            sys.stdout = stdout_redirector_server # => Remplace the method of sys
+            Label(server_gui, text=f"Server started at {ip} on port {port}.").pack()
 
             server_i = Server(ip, port)
 
             thread_server = threading.Thread(target=lambda: server_i.Run_server(), daemon=True) # => Use trhead beacause the method Run_server bloc the TKinter instance
             thread_server.start()
 
-            Button(server_gui, text="Stop Server", command=lambda: Interface.stop_server(thread_server, server_gui, server_i)).pack(side="top")
-            server_gui.protocol("WM_DELETE_WINDOW", lambda: Interface.stop_server(thread_server, server_gui, server_i))
+            Button(server_gui, text="Stop Server", command=lambda: Interface.__stop_server(thread_server, server_gui, server_i)).pack()
+            server_gui.protocol("WM_DELETE_WINDOW", lambda: Interface.__stop_server(thread_server, server_gui, server_i))
 
     @staticmethod
-    def stop_server(thread_server, server_gui, server_i):
+    def __stop_server(thread_server, server_gui, server_i):
         server_i.thread_etat = False
-        thread_server.join()
         server_gui.destroy()
         Interface.__NB_SERVER -= 1
+        
     
-tmp = Interface(500, 500, "Server App")
+main = Interface(500, 500, "Server App")
 
-Button(tmp.gui, text="New server", command=tmp.create_server).pack()
+Button(main.gui, text="New server", command=main.create_server).pack()
+Button(main.gui, text="Create server certificat", command=main.create_cert).pack()
 
-frame_stdout_main = Frame(tmp.gui)
+frame_stdout_main = Frame(main.gui)
 frame_stdout_main.pack(fill=BOTH, expand=True)
 
 text_stdout_main = Text(frame_stdout_main, wrap="word", height=10, width=50)
@@ -133,4 +135,4 @@ stdout_redirector_main = stdout_redirector(text_stdout_main)
 sys.stdout = stdout_redirector_main
 sys.stderr = stdout_redirector_main
 
-tmp.run()
+main.run()
