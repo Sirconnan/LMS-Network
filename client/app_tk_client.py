@@ -54,7 +54,7 @@ class Lms_network:
         self.user_port = self.input_start_port.get()
     
         if ip_used == self.user_ip:
-            showerror('Error', f"L' adresse ip {self.ip_used} est deja utiliser", parent=self.instance_client)
+            showerror('Error', f"L' adresse ip {self.user_ip} est deja utiliser", parent=self.instance_client)
 
         elif self.user_port in port_used:
             showerror('Error', f'Le port {self.user_port} est deja utiliser', parent=self.instance_client)
