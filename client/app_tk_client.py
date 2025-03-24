@@ -4,19 +4,23 @@ from client import Client
 from tkinter.messagebox import *
 
 class Lms_network:
-    
+     # Class attribute to count the number of clients
     __nb_client = 0
+    
+      # Command to get the local IP address
     cmd_ip_client = "ip addr show wlan0 | grep 'inet ' | awk '{print $2}' | cut -d/ -f1"
     ip_client = subprocess.run(cmd_ip_client, shell=True, capture_output=True, text=True)
     
     def __init__(self):
+         # Initialize main GUI window
         self.gui = tk.Tk()
         self.gui.config(bg='skyblue')
         self.gui.title("LMS Network")
-        self.gui.geometry("600x600")
+        self.gui.geometry("400x400")
     
         
     def run_graphique(self):
+         # Start the Tkinter main loop
         self.gui.mainloop()
         
     def start_new_client(self):
@@ -71,14 +75,16 @@ class Lms_network:
 
 
     def show_main_menu(self):
-        self.menu_frame = tk.Frame(self.gui, bg='skyblue')
-        self.menu_frame.pack(pady=20)
+        self.menu_window = tk.Toplevel(self.gui)
+        self.menu_window.title("Menu Principal")
+        self.menu_window.geometry("700x700")
+        self.menu_window.config(bg='gray')
 
-        tk.Button(self.menu_frame, text="Requête Echo", command=self.requete_echo).pack(pady=10)
-        tk.Button(self.menu_frame, text="Menu DNS", command=self.menu_dns).pack(pady=10)
-        tk.Button(self.menu_frame, text="Scan de Ports", command=self.scan_ports).pack(pady=10)
-        tk.Button(self.menu_frame, text="Quitter", command=self.gui.quit).pack(pady=10)
-
+        tk.Button(self.menu_window, text="Requête Echo", command=self.requete_echo).pack(pady=10)
+        tk.Button(self.menu_window, text="Menu DNS", command=self.menu_dns).pack(pady=10)
+        tk.Button(self.menu_window, text="Scan de Ports", command=self.scan_ports).pack(pady=10)
+        tk.Button(self.menu_window, text="Quitter", command=self.menu_window.destroy).pack(pady=10)
+        
     def requete_echo(self):
         message = "test"
         try:
