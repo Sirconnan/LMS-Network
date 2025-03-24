@@ -128,7 +128,7 @@ class Client:
         
         try:
             nom_domaine = socket.gethostbyaddr(self.ip_server)[0]
-            print(f"{self.ip_server}:\n\t{nom_domaine}")
+            return f"{self.ip_server}:\n\t{nom_domaine}"
         except socket.error as e:
             self.error_sockets(e)
 

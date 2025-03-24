@@ -109,7 +109,7 @@ class Lms_network:
             # Create a new window for DNS menu
         self.dns_window = tk.Toplevel(self.gui)
         self.dns_window.title("DNS Menu")
-        self.dns_window.geometry("700x600")
+        self.dns_window.geometry("1000x600")
         self.dns_window.config(bg='midnight blue')
 
         tk.Label(self.dns_window, text="<<< DNS Menu >>>", font=("Arial", 18, "bold"), bg='lightblue').pack(pady=20)
@@ -125,7 +125,7 @@ class Lms_network:
 
         # Buttons for DNS options
         tk.Button(self.dns_window, text="DNS Resolution", command=self.dns_resolution).pack(pady=5)
-        # tk.Button(self.dns_window, text="Reverse DNS", command=self.reverse_dns).pack(pady=5)
+        tk.Button(self.dns_window, text="Reverse DNS", command=self.reverse_dns).pack(pady=5)
         # tk.Button(self.dns_window, text="DNS Record Lookup", command=self.dns_registre).pack(pady=5)
         tk.Button(self.dns_window, text="Close", command=self.dns_window.destroy).pack(pady=20)
         
@@ -133,8 +133,11 @@ class Lms_network:
     def dns_resolution(self):
         
         reponse = self.client_script.resolution_dns(self.dns_input.get())
-        self.dns_output.insert(tk.END, reponse)
-        
+        self.dns_output.insert(tk.END, reponse, "\n")
+    
+    def reverse_dns(self):
+        reponse = self.client_script.reverse_resolution_dns()
+        self.dns_output.insert(tk.END, reponse, "\n")
     def scan_ports(self):
         print("Scan lancé")
 
