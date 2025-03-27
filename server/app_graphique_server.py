@@ -1,8 +1,14 @@
-#!/bin/python
+"""
+Il faut ajouter le fonction pour vérifier les paramètre de la certification et ajouter le chois du certificat pour le serveur avans de le démarer
+
+"""
+
 import socket, sys, threading, psutil, time
 from server import Server
 from tkinter import * 
 from tkinter.messagebox import * 
+from tkinter.filedialog import *
+
 
 
 class stdout_redirector: # ====> Create class for redirect the stdout flux
@@ -40,13 +46,6 @@ class Interface:
         except KeyboardInterrupt:
             self.gui.quit()
             exit()
-    
-    
-    def create_cert(self):
-        if Interface.__NB_CERTIFICAT >=1:
-            showinfo("Limit reached", "The max number of service for create is reached. (1 max)")
-            return
-        print("OK")
 
     
     def create_server(self):
@@ -71,12 +70,50 @@ class Interface:
         
         Button(server_gui, text="Start server", command=lambda: Interface.__start_server(ip_input, port_input, server_gui)).pack()
     
+    def create_cert(self):
+        if Interface.__NB_CERTIFICAT >= 1:
+            showinfo("Limit reached", "The max number of server is reached. (1 max)")
+            return
+
+        Interface.__NB_CERTIFICAT += 1
+
+        cert_gui = Toplevel(self.gui)
+        cert_gui.configure(bg='gray25')
+        cert_gui.geometry("1000x400")
+
+        Label(cert_gui, text="Contry").pack()
+        contry_input = Entry(cert_gui)
+        contry_input.pack()
+        contry_input.insert(0, "FR")
+
+        Label(cert_gui, text="Region").pack()
+        region_input = Entry(cert_gui)
+        region_input.pack()
+        region_input.insert(0, "Haute-Savoie")
+
+        Label(cert_gui, text="City").pack()
+        city_input = Entry(cert_gui)
+        city_input.pack()
+        city_input.insert(0, "Annecy")
+
+        Label(cert_gui, text="Society").pack()
+        society_input = Entry(cert_gui)
+        society_input.pack()
+        society_input.insert(0, "MS Secure")
+
+        Label(cert_gui, text="IP of the server").pack()
+        ip_input = Entry(cert_gui)
+        ip_input.pack()
+        ip_input.insert(0, Interface.__IP)
+
+        Button(cert_gui, text="Generate certificat", command=lambda: None).pack()
+    
     @staticmethod
     def __start_server(ip_input, port_input, server_gui):
         ip = ip_input.get()
         port = port_input.get()
 
-        connection = psutil.net_connections(kind="inet") # => 
+        connection = psutil.net_connections(kind="inet") 
         list_open_port = {conn.laddr.port for conn in connection}
 
         octets = ip.split(".")
@@ -123,7 +160,8 @@ class Interface:
 main = Interface(500, 500, "Server App")
 
 Button(main.gui, text="New server", command=main.create_server).pack()
-Button(main.gui, text="Create server certificat", command=main.create_cert).pack()
+Button(main.gui, text="New certificat", command=main.create_cert).pack()
+
 
 frame_stdout_main = Frame(main.gui)
 frame_stdout_main.pack(fill=BOTH, expand=True)
