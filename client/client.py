@@ -39,7 +39,7 @@ class Client:
 
         
         context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-        context.load_verify_locations("/home/lenzzair/Projet/Python_client_server_poo/client/ca.crt")
+        context.load_verify_locations("/etc/ca-certificates/trust-source/ca.crt")
         #context.set_ciphers("TLS_AES_128_CCM_8_SHA256,TLS_AES_128_CCM_SHA256,TLS_AES_128_GCM_SHA256,TLS_AES_256_GCM_SHA384, TLS_CHACHA20_POLY1305_SHA256")
         # Force Diffie-Hellman
     
