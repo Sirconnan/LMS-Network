@@ -1,5 +1,6 @@
 import socket, ssl, threading, random, json
 
+from OpenSSL import crypto
 from diffie_helman_server import * 
 
 #===============================================
@@ -145,6 +146,53 @@ class Server:
         print("\nListen...")   
         client.close()
         return 0
+
+    @staticmethod
+    def gen_crt_server(contry, region, city, society, ip):
+
+        # ===> Generate private key
+        key = crypto.PKey()
+        key.generate_key(crypto.TYPE_RSA, 2048)
+
+        # ===> Generate request for certification  
+        req = crypto.X509Req()
+        req.get_subject().C = contry
+        req.get_subject().ST = region
+        req.get_subject().L = city
+        req.get_subject().O = society
+        req.get_subject().OU = society
+        req.get_subject().CN = ip
+        req.set_pubkey(key)
+        req.sign(key, "sha512")
+
+        # ===> Get the certifica of the ca
+        with open("/home/marietm/res403/server/ca.crt", "rt") as f:
+            ca_cert = crypto.load_certificate(crypto.FILETYPE_PEM, f.read())
+
+        # ===> Get the key of the ca
+        with open("/home/marietm/res403/server/ca.key", "rt") as f:
+            ca_key = crypto.load_privatekey(crypto.FILETYPE_PEM, f.read())
+
+        # ===> Sign the certifica by the ca
+        cert = crypto.X509()
+        cert.set_serial_number(random.getrandbits(64))
+        cert.gmtime_adj_notBefore(0)
+        cert.gmtime_adj_notAfter(365*24*60*60) 
+        cert.set_subject(req.get_subject())
+        cert.set_issuer(ca_cert.get_subject())
+        cert.set_pubkey(req.get_pubkey())
+        cert.add_extensions([
+            crypto.X509Extension(b"subjectAltName", False, f"IP:{ip}".encode())
+        ])
+        cert.sign(ca_key, "sha512")
+
+        # ===> Whrite the certificat in a file
+        with open("/home/marietm/res403/server/server.key", "wt") as f:
+            f.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, key).decode())
+
+         # ===> Whrite the key in a file
+        with open("/home/marietm/res403/server/server.crt", "wt") as f:
+            f.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert).decode())
 
 
     @staticmethod
