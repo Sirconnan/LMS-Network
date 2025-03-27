@@ -1,4 +1,4 @@
-#!/bin/python
+#!/home/marietm/Downloads/tmpp2/bin/python
 from server import Server
 
 boucle = True

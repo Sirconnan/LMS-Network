@@ -148,7 +148,7 @@ class Server:
         return 0
 
     @staticmethod
-    def gen_crt_server(contry, city, region, society, ip):
+    def gen_crt_server(contry, region, city, society, ip):
 
         # ===> Generate private key
         key = crypto.PKey()
@@ -157,11 +157,11 @@ class Server:
         # ===> Generate request for certification  
         req = crypto.X509Req()
         req.get_subject().C = contry
-        req.get_subject().ST = city
-        req.get_subject().L = region
+        req.get_subject().ST = region
+        req.get_subject().L = city
         req.get_subject().O = society
         req.get_subject().OU = society
-        req.get_subject().CN = f"ip:{ip}"
+        req.get_subject().CN = ip
         req.set_pubkey(key)
         req.sign(key, "sha512")
 
@@ -175,12 +175,15 @@ class Server:
 
         # ===> Sign the certifica by the ca
         cert = crypto.X509()
-        cert.set_serial_number(1001)
+        cert.set_serial_number(random.getrandbits(64))
         cert.gmtime_adj_notBefore(0)
         cert.gmtime_adj_notAfter(365*24*60*60) 
         cert.set_subject(req.get_subject())
         cert.set_issuer(ca_cert.get_subject())
         cert.set_pubkey(req.get_pubkey())
+        cert.add_extensions([
+            crypto.X509Extension(b"subjectAltName", False, f"IP:{ip}".encode())
+        ])
         cert.sign(ca_key, "sha512")
 
         # ===> Whrite the certificat in a file
@@ -189,9 +192,7 @@ class Server:
 
          # ===> Whrite the key in a file
         with open("/home/marietm/res403/server/server.crt", "wt") as f:
-            f.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert).decode()) 
-
-        print("ok") 
+            f.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert).decode())
 
 
     @staticmethod
