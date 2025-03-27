@@ -93,7 +93,7 @@ class Lms_network:
         # Menu buttons for different actions
         tk.Button(self.menu_window, text="Requête Echo", command=self.requete_echo).pack(pady=10)
         tk.Button(self.menu_window, text="Menu DNS", command=self.menu_dns).pack(pady=10)
-        tk.Button(self.menu_window, text="Scan de Ports", command=self.scan_ports).pack(pady=10)
+        tk.Button(self.menu_window, text="Scan de Ports", command=self.menu_scan_port).pack(pady=10)
         tk.Button(self.menu_window, text="Quitter", command=self.menu_window.destroy).pack(pady=10)
         
     def requete_echo(self):
@@ -126,7 +126,7 @@ class Lms_network:
         # Buttons for DNS options
         tk.Button(self.dns_window, text="DNS Resolution", command=self.dns_resolution).pack(pady=5)
         tk.Button(self.dns_window, text="Reverse DNS", command=self.reverse_dns).pack(pady=5)
-        # tk.Button(self.dns_window, text="DNS Record Lookup", command=self.dns_registre).pack(pady=5)
+        tk.Button(self.dns_window, text="DNS Record Lookup", command=self.dns_registre).pack(pady=5)
         tk.Button(self.dns_window, text="Close", command=self.dns_window.destroy).pack(pady=20)
         
         
@@ -137,10 +137,49 @@ class Lms_network:
     
     def reverse_dns(self):
         reponse = self.client_script.reverse_resolution_dns()
-        self.dns_output.insert(tk.END, reponse, "\n")
-    def scan_ports(self):
-        print("Scan lancé")
+        self.dns_output.insert(tk.END, reponse)
+        
+    def dns_registre(self):
+        reponse = self.client_script.resolution_dns(self.dns_input)
+        self.dns_output.insert(reponse)
+        
+    def menu_scan_port(self):
+        self.scan_window = tk.Toplevel(self.gui)
+        self.scan_window.title("SCAN Menu")
+        self.scan_window.geometry("1000x600")
+        self.scan_window.config(bg='midnight blue')
 
+        tk.Label(self.scan_window, text="<<< SCAN Menu >>>", font=("Arial", 18, "bold"), bg='lightblue').pack(pady=20)
+
+        # Entry for domain or IP input
+        tk.Label(self.scan_window, text="Enter ip and port number (22, 80, 443, ...)", bg='lightblue').pack()
+        self.scan_input = tk.Entry(self.dns_window, font=("Arial", 14), width=40)
+        self.pack(pady=20)
+        
+        self.scan_output = tk.Text(self.scan_window, height=15, width=70, bg='white')
+        self.scan_output.pack(pady=20)
+        
+        tk.Button(self.scan_window, text="Start SCAN", command=self.scan_ports).pack(pady=5)
+        tk.Button(self.scan_window, text="Close", command=self.scan_window.destroy).pack(pady=5)
+
+    def scan_ports(self):
+        ports = self.scan_input.split(",")
+        liste_ports = []
+
+        for iport in ports:
+                    liste_ports.append(int(iport))
+
+        if len(liste_ports) > 1:
+            self.scan_output.insert("Scaning...")
+            reponse = self.client_script.run_scan(liste_ports)
+            self.scan_output.insert(reponse)
+        
+        elif len(liste_ports) == 1 : 
+            self.scan_output.insert("Scanning...")
+            reponse = self.client_script.scan_port(liste_ports)
+            self.scan_output.insert(reponse)
+        else:
+            self.scan_output.insert("Select a port number")
 
 # ===============================================
 
