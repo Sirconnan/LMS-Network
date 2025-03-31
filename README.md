@@ -51,7 +51,3 @@ docker push DOCKERHUB_USERNAME/server-python-app:latest
 ```
 
 Remplacez `DOCKERHUB_USERNAME` par votre identifiant Docker Hub.
-
-## Licence
-
-Ce projet est sous licence MIT.
