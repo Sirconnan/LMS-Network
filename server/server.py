@@ -34,7 +34,7 @@ class Server:
 
         # ===> Add parameter of tls connexion
         context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-        context.load_cert_chain("/home/marietm/res403/server/server.crt", "/home/marietm/res403/server/server.key")
+        context.load_cert_chain("/home/marietm/LMS-Network/server/server.crt", "/home/marietm/LMS-Network/server/server.key")
         # context.set_ciphers("TLS_AES_128_CCM_8_SHA256, TLS_AES_128_CCM_SHA256, TLS_AES_128_GCM_SHA256, TLS_AES_256_GCM_SHA384 , TLS_CHACHA20_POLY1305_SHA256")
 
         # ===> Define IP/TCP socket
@@ -166,11 +166,11 @@ class Server:
         req.sign(key, "sha512")
 
         # ===> Get the certifica of the ca
-        with open("/home/marietm/res403/server/ca.crt", "rt") as f:
+        with open("/home/marietm/LMS-Network/server/ca.crt", "rt") as f:
             ca_cert = crypto.load_certificate(crypto.FILETYPE_PEM, f.read())
 
         # ===> Get the key of the ca
-        with open("/home/marietm/res403/server/ca.key", "rt") as f:
+        with open("/home/marietm/LMS-Network/server/ca.key", "rt") as f:
             ca_key = crypto.load_privatekey(crypto.FILETYPE_PEM, f.read())
 
         # ===> Sign the certifica by the ca
@@ -187,11 +187,11 @@ class Server:
         cert.sign(ca_key, "sha512")
 
         # ===> Whrite the certificat in a file
-        with open("/home/marietm/res403/server/server.key", "wt") as f:
+        with open("/home/marietm/LMS-Network/server/server.key", "wt") as f:
             f.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, key).decode())
 
          # ===> Whrite the key in a file
-        with open("/home/marietm/res403/server/server.crt", "wt") as f:
+        with open("/home/marietm/LMS-Network/server/server.crt", "wt") as f:
             f.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert).decode())
 
 
