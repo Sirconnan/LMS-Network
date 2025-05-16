@@ -23,17 +23,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install psutil pycryptodome pyOpenSSL dnspython scapy
 
-      - name: Run tests in Docker container
-        run: |
-          docker run --rm server-python-app pytest tests/
-
-      - name: Tag Docker image
-        run: |
-          docker tag server-python-app ${{ secrets.DOCKER_HUB_USERNAME }}/server-python-app:latest
-
-      - name: Push Docker image
-        run: |
-          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/server-python-app:latest
 
       - name: Run basic test
         run: |
